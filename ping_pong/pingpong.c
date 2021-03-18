@@ -5,6 +5,7 @@
 #include <mpi.h>
 
 #define BLOCK 1024
+#define MAX_INT ( 1<<24 )
 
 int32_t *empty_buff(int size);
 void randomise(int32_t *buff, int size);
@@ -117,13 +118,14 @@ double *pingpong(int ping, int pong, int *message_sizes, int mslen, int repeats)
                          mesg_size,
                          MPI_INT32_T,
                          pong,
-                         10*mesg_size*ping + jj,
+                         (10*mesg_size*ping + jj)%MAX_INT,
                          MPI_COMM_WORLD);
+                // printf("!%d\n", (20*mesg_size*pong + jj)%MAX_INT);
                 MPI_Recv(recv,
                          mesg_size,
                          MPI_INT32_T,
                          pong,
-                         20*mesg_size*pong + jj,
+                         (20*mesg_size*pong + jj)%MAX_INT,
                          MPI_COMM_WORLD,
                          &status);
                 results[repeats*ii + jj] = MPI_Wtime() - t;
@@ -143,14 +145,14 @@ double *pingpong(int ping, int pong, int *message_sizes, int mslen, int repeats)
                          mesg_size,
                          MPI_INT32_T,
                          ping,
-                         10*mesg_size*ping + jj,
+                         (10*mesg_size*ping + jj)%MAX_INT,
                          MPI_COMM_WORLD,
                          &status);
                 MPI_Send(recv,
                          mesg_size,
                          MPI_INT32_T,
                          ping,
-                         20*mesg_size*pong + jj,
+                         (20*mesg_size*pong + jj)%MAX_INT,
                          MPI_COMM_WORLD);
             }
             // Free here
