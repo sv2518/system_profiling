@@ -46,7 +46,9 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-c', '--cores', type=int, default=None)
     parser.add_argument('--cc', type=str, default='gcc')
+    parser.add_argument('--cflags', type=str, default='-march=native -O3 -fopenmp -ffast-math')
     parser.add_argument('-l3', '--l3', type=str, default=None)
+    parser.add_argument('--no_compile', action='store_true')
     parser.add_argument('-o', '--output', default='results.pickle')
     parser.add_argument('--offset', type=int, default=0)
     parser.add_argument('-r', '--repeats', type=int, default=10)
@@ -66,7 +68,7 @@ if __name__ == '__main__':
     array_size = l3//2
 
     compiler = args.cc
-    cflags = '-march=native -O3 -fopenmp -ffast-math'
+    cflags = args.cflags
     pp_defs = f'-DSTREAM_ARRAY_SIZE={array_size} -DNTIMES={args.repeats} -DOFFSET={args.offset}'
     source_file = Path('stream.c').absolute()
     executable_file = source_file.with_suffix('')
@@ -76,12 +78,21 @@ if __name__ == '__main__':
     compile_command.append(str(source_file))
 
     # ~ print(compile_command)
-    run(compile_command)
+    if not args.no_compile:
+        try:
+            run(compile_command, check=True)
+        except CalledProcessError:
+            print('Executing:')
+            print(' '.join(compile_command))
+            print('failed, try compiling manually and pass `--no_compile` argument')
+            print('If running on a system with large L3 cache you may need to add')
+            print('`-mcmodel=medium` or even `-mcmodel=large` to default `--cflags`')
+            exit(1)
 
     run_env = environ.copy()
     run_env['OMP_DISPLAY_AFFINITY'] = 'TRUE'
-    run_env['OMP_PLACES'] = 'cores'
-    run_env['OMP_PROC_BIND'] = 'spread'
+    # ~ run_env['OMP_PLACES'] = 'cores'
+    # ~ run_env['OMP_PROC_BIND'] = 'close'
     results = []
     for ii in range(cores):
         run_env['OMP_NUM_THREADS'] = str(ii + 1)
