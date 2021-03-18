@@ -1,5 +1,3 @@
-import psutil
-
 from argparse import ArgumentParser
 from os import environ
 from pathlib import Path
@@ -7,7 +5,14 @@ from pickle import dump
 from subprocess import run, PIPE, CalledProcessError
 
 def guess_cores():
-    return psutil.cpu_count(logical=False)
+    try:
+        import psutil
+        cores = psutil.cpu_count(logical=False)
+    except ImportError:
+        print('Cannot import psutils, either install psutils or manually specify `--cores`')
+        print('Defaulting to single core')
+        cores = 1
+    return cores
 
 
 def size2val(size):
