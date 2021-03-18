@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from os import environ
 from pathlib import Path
 from pickle import dump
-from subprocess import run
+from subprocess import run, PIPE
 
 def guess_cores():
     return psutil.cpu_count(logical=False)
@@ -12,7 +12,7 @@ def guess_cores():
 
 def guess_l3():
     try:
-        output = run(['lscpu', '-C'], check=True, capture_output=True, encoding='UTF-8')
+        output = run(['lscpu', '-C'], check=True, stdout=PIPE, stderr=PIPE, encoding='UTF-8')
         for s in reversed(output.stdout.split('\n')):
             if s:
                 cache = s
@@ -63,7 +63,7 @@ compile_command = [compiler] + cflags.split() + pp_defs.split()
 compile_command += ['-o', str(executable_file)]
 compile_command.append(str(source_file))
 
-print(compile_command)
+# ~ print(compile_command)
 run(compile_command)
 
 run_env = environ.copy()
@@ -73,7 +73,7 @@ run_env['OMP_PROC_BIND'] = 'spread'
 results = []
 for ii in range(cores):
     run_env['OMP_NUM_THREADS'] = str(ii + 1)
-    output = run([executable_file], env=run_env, check=True, capture_output=True, encoding='UTF-8')
+    output = run([executable_file], env=run_env, check=True, stdout=PIPE, stderr=PIPE, encoding='UTF-8')
     for line in output.stdout.split('\n'):
         # ~ print(line)
         if line.startswith('level'):
