@@ -36,7 +36,7 @@ def guess_l3():
                 cache = s
                 break
         size = cache.split()[2]
-        l3 = units2val(size)
+        l3 = size2val(size)
     except FileNotFoundError:
         print('No command `lscpu`, using default value of 20MB for L3 cache size')
         l3 = 20*2**20

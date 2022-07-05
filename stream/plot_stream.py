@@ -16,7 +16,7 @@ args, _ = parser.parse_known_args()
 
 inputfile = Path(args.input).absolute()
 with open(inputfile, 'rb') as fh:
-    results = load(fh)
+    results = np.array(load(fh))
 
 cores = [ii + 1 for ii in range(len(results))]
 if args.channels:
